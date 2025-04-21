@@ -1,0 +1,24 @@
+/* Additional styling beyond Bootstrap */
+.card {
+    border-radius: 10px;
+}
+
+pre {
+    background-color: var(--bs-dark);
+    padding: 1rem;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+code {
+    color: var(--bs-info);
+}
+
+#loading {
+    margin: 2rem 0;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Audio Extractor for AssemblyAI</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-bottom-0">
+                        <h1 class="text-center mb-0">YouTube Audio Extractor</h1>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-center lead mb-4">
+                            Extract high-quality audio from YouTube videos in AssemblyAI-friendly format.
+                        </p>
+
+                        <div class="alert alert-info" role="alert">
+                            <h5 class="alert-heading">How it works:</h5>
+                            <ol>
+                                <li>Enter a YouTube URL or video ID</li>
+                                <li>We'll extract the high-quality MP3 audio (compatible with AssemblyAI)</li>
+                                <li>You'll receive a direct URL to the processed audio file</li>
+                                <li>Files are automatically removed after 60 minutes</li>
+                            </ol>
+                        </div>
+
+                        <div class="mb-4">
+                            <form id="extract-form">
+                                <div class="input-group mb-3">
+                                    <input type="text" id="youtube-url" class="form-control" 
+                                           placeholder="YouTube URL or video ID (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ or dQw4w9WgXcQ)" 
+                                           aria-label="YouTube URL" required>
+                                    <button class="btn btn-primary" type="submit" id="extract-button">
+                                        Extract Audio
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div id="loading" class="text-center d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Extracting audio. This may take a minute...</p>
+                        </div>
+
+                        <div id="result" class="d-none">
+                            <div class="alert alert-success" role="alert">
+                                <h5 class="alert-heading">Audio Extraction Successful!</h5>
+                                <p><strong>Title:</strong> <span id="video-title"></span></p>
+                                <p><strong>Audio URL:</strong> <a id="audio-url" href="#" target="_blank"></a></p>
+                                <p><small>This link will expire in <span id="expires-in"></span> minutes.</small></p>
+                                <hr>
+                                <p class="mb-0">
+                                    <button class="btn btn-sm btn-outline-secondary" id="copy-url-btn">Copy URL</button>
+                                    <a id="download-btn" href="#" class="btn btn-sm btn-outline-primary" download>Download Audio</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="error" class="d-none">
+                            <div class="alert alert-danger" role="alert">
+                                <h5 class="alert-heading">Error</h5>
+                                <p id="error-message"></p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h5>API Usage</h5>
+                            <p>You can also use this tool programmatically:</p>
+                            <pre><code>GET /download?url={youtube_url}</code></pre>
+                            <p>The response will be a JSON object:</p>
+<pre><code>{
+  "success": true,
+  "title": "Video Title",
+  "audio_url": "https://direct-url-to-audio-file.mp3",
+  "expiration": "2023-01-01T12:00:00",
+  "expires_in_minutes": 60
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('extract-form');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+            const videoTitle = document.getElementById('video-title');
+            const audioUrl = document.getElementById('audio-url');
+            const expiresIn = document.getElementById('expires-in');
+            const copyUrlBtn = document.getElementById('copy-url-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const errorMessage = document.getElementById('error-message');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const youtubeUrl = document.getElementById('youtube-url').value.trim();
+                if (!youtubeUrl) {
+                    showError('Please enter a YouTube URL or video ID.');
+                    return;
+                }
+                
+                // Reset UI
+                loading.classList.remove('d-none');
+                result.classList.add('d-none');
+                error.classList.add('d-none');
+                
+                // Make API request
+                fetch(`/download?url=${encodeURIComponent(youtubeUrl)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        loading.classList.add('d-none');
+                        
+                        if (data.error) {
+                            showError(data.error);
+                        } else {
+                            // Show success result
+                            result.classList.remove('d-none');
+                            videoTitle.textContent = data.title;
+                            audioUrl.textContent = data.audio_url;
+                            audioUrl.href = data.audio_url;
+                            expiresIn.textContent = data.expires_in_minutes;
+                            downloadBtn.href = data.audio_url;
+                        }
+                    })
+                    .catch(err => {
+                        loading.classList.add('d-none');
+                        showError('An error occurred while processing your request. Please try again.');
+                        console.error(err);
+                    });
+            });
+            
+            // Copy URL button
+            copyUrlBtn.addEventListener('click', function() {
+                const url = audioUrl.textContent;
+                navigator.clipboard.writeText(url).then(() => {
+                    copyUrlBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyUrlBtn.textContent = 'Copy URL';
+                    }, 2000);
+                });
+            });
+            
+            function showError(message) {
+                error.classList.remove('d-none');
+                errorMessage.textContent = message;
+            }
+        });
+    </script>
+</body>
+</html>
