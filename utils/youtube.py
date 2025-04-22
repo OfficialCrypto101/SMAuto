@@ -37,6 +37,7 @@ def download_youtube_audio(url, output_path):
         'no_warnings': False,
         'extractaudio': True,
         'audioformat': 'mp3',
+        'cookiefile': 'cookies.txt', 
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
