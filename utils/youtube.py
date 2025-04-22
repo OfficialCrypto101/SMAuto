@@ -29,21 +29,23 @@ def download_youtube_audio(url, output_path):
     # Remove .mp3 extension to prevent double extension
     base_path = output_path.replace('.mp3', '')
     
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': base_path,
-        'noplaylist': True,
-        'quiet': False,
-        'no_warnings': False,
-        'extractaudio': True,
-        'audioformat': 'mp3',
-        'cookiefile': 'cookies.txt', 
-        'postprocessors': [{
-    'key': 'FFmpegExtractAudio',
-    'preferredcodec': 'mp3',
-    'preferredquality': '128',
-}],
-    }
+ydl_opts = {
+    'format': 'bestaudio/best',
+    'outtmpl': base_path,
+    'noplaylist': True,
+    'quiet': False,
+    'no_warnings': False,
+    'cookiefile': 'cookies.txt',
+    'extractaudio': True,
+    'audioformat': 'mp3',
+    'concurrent_fragment_downloads': 1,
+    'buffer_size': 1024 * 64,
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '128',
+    }],
+}
     
     try:
         logger.info(f"Starting download from YouTube: {processed_url}")
